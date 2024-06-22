@@ -37,21 +37,24 @@ def init_database(user: str, password: str, host: str, port: str, database: str)
 
 def get_sql_chain(db):
     template = """
-        You are a data analyst at a company. You are interacting with a user who is asking you questions about the company's database.
+        You are a data analyst at a company. You are interacting with a user who is asking questions about the company's database.
         Based on the table schema below, write a SQL query that would answer the user's question. Take the conversation history into account.
         
         <SCHEMA>{schema}</SCHEMA>
         
+        Important information:
+        - In all tables, the first entry is the latest, and the last entry is the oldest.
+        - Entries are sorted by time in descending order.
+        - When asked for "latest" or "recent" data, always use ORDER BY and LIMIT to get the most recent entries.
+        
         Conversation History: {chat_history}
         
         Write only the SQL query and nothing else. Do not wrap the SQL query in any other text, not even backticks.
-        If the question is out of context, write answer according to your knowledge.
+        If the question is out of context, write an answer according to your knowledge.
         
         For example:
-        Question: which 3 artists have the most tracks?
-        SQL Query: SELECT ArtistId, COUNT(*) as track_count FROM Track GROUP BY ArtistId ORDER BY track_count DESC LIMIT 3;
-        Question: Name 10 artists
-        SQL Query: SELECT Name FROM Artist LIMIT 10;
+        Question: What are the latest orders?
+        SQL Query: SELECT * FROM orders ORDER BY order_date DESC LIMIT 5;
         
         Your turn:
         
@@ -74,8 +77,6 @@ def get_sql_chain(db):
         | StrOutputParser()
         | (lambda x: clean_sql_query(x))
     )
-
-
 def fallback_response(question: str, chat_history: list):
     template = """
     You are a knowledgeable AI assistant. The user asked a question that couldn't be answered using the database. 
@@ -103,9 +104,14 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
     sql_chain = get_sql_chain(db)
     
     template = """
-        You are a data analyst at a company. You are interacting with a user who is asking you questions about the company's database.
+        You are a data analyst at a company. You are interacting with a user who is asking questions about the company's database.
         Based on the table schema below, question, sql query, and sql response, write a natural language response.
         <SCHEMA>{schema}</SCHEMA>
+    
+        Important information:
+        - In all tables, the first entry is the latest, and the last entry is the oldest.
+        - Entries are sorted by time in descending order.
+        - When discussing "latest" or "recent" data, always mention that you're providing the most recent entries.
     
         Conversation History: {chat_history}
         SQL Query: <SQL>{query}</SQL>
@@ -113,6 +119,7 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
         SQL Response: {response}
         
         Provide a clear and concise answer to the user's question based on the SQL response.
+        If the query returns multiple rows, summarize the data instead of listing all entries.
         """
     
     prompt = ChatPromptTemplate.from_template(template)
@@ -150,7 +157,8 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
         logging.error(f"Error in main chain: {e}")
         print("Fallback mechanism called due to main chain error")
         return fallback_response(user_query, chat_history)
-
+    
+    
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
         AIMessage(content="Hello! I'm your data  assistant. Ask me anything about your database."),

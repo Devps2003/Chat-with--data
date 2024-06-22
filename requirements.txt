@@ -16,3 +16,4 @@ frappe-client
 python-dotenv
 langchain_google_genai
 torch
+streamlit-option-menu
