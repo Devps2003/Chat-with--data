@@ -7,13 +7,13 @@ from frappeclient import FrappeClient
 # MySQL database details
 mysql_host = "localhost"
 mysql_port = "3306"
-mysql_user = "Dev"
-mysql_password = "FOS@123"
-mysql_database = "erp_data"
+mysql_user = ""
+mysql_password = ""
+mysql_database = ""
 
-url = "http://43.205.39.54"
-api_key = "1a7902ee177ab14"
-secret_key = "98a82ed1faeff06"
+url = ""
+api_key = ""
+secret_key = ""
 
 def fetch_all_data(doctype):
     client = FrappeClient(url)
