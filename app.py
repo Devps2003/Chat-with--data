@@ -13,7 +13,10 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_community.utilities import SQLDatabase
 from streamlit_option_menu import option_menu
 from langchain_core.output_parsers import StrOutputParser
-from langchain_google_genai import ChatGoogleGenerativeAI
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 import logging
 from urllib.parse import quote_plus
 from PIL import Image
@@ -71,21 +74,27 @@ def get_sql_chain(db):
         SQL Query:
         """
     
-    prompt = ChatPromptTemplate.from_template(template)
-    
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=gemini_api_key, convert_system_message_to_human=True, temperature=0.0)
+    def openai_completion(prompt):
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.0
+        )
+        return response.choices[0].message["content"].strip()
     
     def get_schema(_):
         return db.get_table_info()
     
-    return (
-        RunnablePassthrough.assign(schema=get_schema)
-        | prompt
-        | llm
-        | StrOutputParser()
-        | (lambda x: clean_sql_query(x))
-    )
+    def generate_sql(query, chat_history):
+        schema = get_schema(None)
+        prompt = template.format(schema=schema, chat_history=chat_history, question=query)
+        return clean_sql_query(openai_completion(prompt))
+    
+    return generate_sql
 
 def fallback_response(question: str, chat_history: list):
     template = """
@@ -98,18 +107,19 @@ def fallback_response(question: str, chat_history: list):
     Please provide a helpful response:
     """
     
-    prompt = ChatPromptTemplate.from_template(template)
+    prompt = template.format(chat_history=chat_history, question=question)
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=150,
+        temperature=0.0
+    )
     
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=gemini_api_key, convert_system_message_to_human=True, temperature=0.0)
-    
-    chain = prompt | llm | StrOutputParser()
-    
-    return chain.invoke({
-        "question": question,
-        "chat_history": chat_history,
-    })
-   
+    return response.choices[0].message["content"].strip()
+
 def get_response(user_query: str, db: SQLDatabase, chat_history: list):
     sql_chain = get_sql_chain(db)
     
@@ -132,10 +142,17 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
         If the query returns multiple rows, summarize the data instead of listing all entries.
         """
     
-    prompt = ChatPromptTemplate.from_template(template)
-    
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=gemini_api_key, convert_system_message_to_human=True, temperature=0.0)
+    def openai_completion(prompt):
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.0
+        )
+        return response.choices[0].message["content"].strip()
     
     def safe_db_run(vars):
         try:
@@ -144,29 +161,23 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
             return f"Query executed successfully. Result: {result}"
         except Exception as e:
             logging.error(f"Error executing SQL query: {e}")
-            print("Fallback mechanism called due to SQL execution error")
             return None
 
-    chain = (
-        RunnablePassthrough.assign(query=sql_chain).assign(
-            schema=lambda _: db.get_table_info(),
-            response=safe_db_run,
-        )
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
+    def generate_response(vars):
+        schema = db.get_table_info()
+        prompt = template.format(schema=schema, chat_history=chat_history, query=vars["query"], question=user_query, response=vars["response"])
+        return openai_completion(prompt)
     
     try:
-        result = chain.invoke({
-            "question": user_query,
-            "chat_history": chat_history,
-        })
-        return result
+        query = sql_chain(user_query, chat_history)
+        response = safe_db_run({"query": query})
+        if response is None:
+            raise Exception("SQL query execution failed")
+        return generate_response({"query": query, "response": response})
     except Exception as e:
         logging.error(f"Error in main chain: {e}")
-        print("Fallback mechanism called due to main chain error")
         return fallback_response(user_query, chat_history)
+
 
 def authenticate_gmail():
     creds = None
@@ -295,9 +306,9 @@ elif selected == "Database Connection":
     with st.form("db_connection"):
         host = st.text_input("Host", value="localhost")
         port = st.text_input("Port", value="3306")
-        user = st.text_input("User", value="Dev")
-        password = st.text_input("Password", type="password", value="FOS@123")
-        database = st.text_input("Database", value="erp_data")
+        user = st.text_input("User", value="dev")
+        password = st.text_input("Password", type="password", value="mypassword")
+        database = st.text_input("Database", value="mydatabase")
         
         submitted = st.form_submit_button("Connect")
         if submitted:
@@ -344,8 +355,6 @@ elif selected == "About":
     
     Made with ❤️ by Dev
     """)
-
-
 
 
 
