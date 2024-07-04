@@ -58,7 +58,7 @@ def init_database(user: str, password: str, host: str, port: str, database: str)
     except Exception as e:
         logging.error(f"Error connecting to database: {e}")
         return None
-    # If the question has the word "latest" in it, the column name is "transaction_date".
+    
 def get_sql_query(db: SQLDatabase, user_query: str, chat_history: List[dict]) -> str:
     table, columns = get_table_and_columns(db, user_query)
 
@@ -69,7 +69,8 @@ def get_sql_query(db: SQLDatabase, user_query: str, chat_history: List[dict]) ->
     Based on the table '{table}' with columns {', '.join(columns)},
     generate a SQL query to answer: "{user_query}"
     Recent chat history: {chat_history[-3:] if len(chat_history) > 3 else chat_history}
-
+    If the question has the word "latest" in it, the column name is "transaction_date"
+    and if asked about the word "order" then the table is "purchase_order".
     Respond with only the SQL query, nothing else.
     """
 
@@ -113,7 +114,7 @@ def get_response(user_query: str, db: SQLDatabase, chat_history: list):
             max_tokens=150,
             temperature=0
         )
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         logging.error(f"Error in get_response: {e}")
         return "I'm sorry, I encountered an error while processing your request."
@@ -263,6 +264,9 @@ elif selected == "About":
     
     Made with ❤️ by Dev
     """)
+
+
+    
 # import os
 # import re
 # import json
