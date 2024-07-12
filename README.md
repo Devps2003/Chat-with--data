@@ -1,3 +1,7 @@
+Sure, here is the updated README with the additional steps to set up `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the environment variables:
+
+---
+
 # Chat-with-Data
 
 Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and a MySQL database, allowing you to interact with your data seamlessly using natural language queries.
@@ -10,10 +14,9 @@ Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and 
 - **OpenAI Integration:** Use OpenAI's GPT model to understand and respond to your queries.
 
 ## Getting Started
-### Deisgn
+### Design
 
 ![image](https://github.com/Devps2003/Chat-with--data/assets/108901991/ca8156c0-99e6-48bc-90d7-285956f3bd2e)
-
 
 ### Prerequisites
 
@@ -53,6 +56,13 @@ Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and 
      OPENAI_API_KEY="your_api_key"
      ```
 
+   - Add your Google OAuth 2.0 credentials:
+
+     ```env
+     GOOGLE_CLIENT_ID="your_google_client_id"
+     GOOGLE_CLIENT_SECRET="your_google_client_secret"
+     ```
+
 5. **Prepare MySQL Database**
 
    - Ensure your MySQL database credentials are ready and accessible.
@@ -88,7 +98,7 @@ By leveraging the power of OpenAI's GPT model, **Chat-with-Data** interprets you
 
 - `main.py`: The main entry point for the Streamlit app.
 - `credentials.json`: OAuth 2.0 credentials for Gmail API (to be added).
-- `.env`: Environment variables including OpenAI API key (to be added).
+- `.env`: Environment variables including OpenAI API key, Google Client ID, and Google Client Secret (to be added).
 - `requirements.txt`: List of dependencies for the project.
 
 ## License
