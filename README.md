@@ -48,7 +48,19 @@ Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and 
    - Place the `credentials.json` file in the root directory of the project.
    - On the Google Cloud Console, add the Gmail accounts you want to access.
 
-4. **Set Up Environment Variables**
+4. **Set Up Google Authentication**
+
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+   - Navigate to the API Library and enable the Gmail API.
+   - Set up OAuth 2.0 credentials:
+     - Go to the "Credentials" page in the Google Cloud Console.
+     - Click "Create Credentials" and select "OAuth 2.0 Client IDs".
+     - Configure the consent screen if prompted.
+     - Set the application type to "Web application".
+     - Add authorized redirect URIs, e.g., `http://localhost:8501`.
+     - After creating, you will receive a `client_id` and `client_secret`.
+
+5. **Set Up Environment Variables**
 
    - Create a `.env` file in the root directory and add your OpenAI API key:
 
@@ -63,7 +75,7 @@ Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and 
      GOOGLE_CLIENT_SECRET="your_google_client_secret"
      ```
 
-5. **Prepare MySQL Database**
+6. **Prepare MySQL Database**
 
    - Ensure your MySQL database credentials are ready and accessible.
 
