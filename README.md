@@ -10,6 +10,10 @@ Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and 
 - **OpenAI Integration:** Use OpenAI's GPT model to understand and respond to your queries.
 
 ## Getting Started
+### Deisgn
+
+![image](https://github.com/Devps2003/Chat-with--data/assets/108901991/ca8156c0-99e6-48bc-90d7-285956f3bd2e)
+
 
 ### Prerequisites
 

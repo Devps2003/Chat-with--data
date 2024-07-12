@@ -17,4 +17,8 @@ streamlit-option-menu
 retrying
 requests
 pandas
+<<<<<<< HEAD
 frappe-client
+=======
+frappe-client
+>>>>>>> 6a0dd77c934f4c161ac78ead622086b9b3733a9a
