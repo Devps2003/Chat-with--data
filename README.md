@@ -1,7 +1,3 @@
-Sure, here is the updated README with the additional steps to set up `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the environment variables:
-
----
-
 # Chat-with-Data
 
 Welcome to **Chat-with-Data**! This project integrates a chatbot with Gmail and a MySQL database, allowing you to interact with your data seamlessly using natural language queries.
